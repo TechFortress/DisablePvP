@@ -9,16 +9,26 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Robo on 9/1/2016.
@@ -35,6 +45,7 @@ public class DisablePvP extends JavaPlugin implements Listener
 
     FileConfiguration config = getConfig();
     DataStore ds;
+    Set<PotionEffectType> positiveEffects;
     boolean isPvPDisabledPlayer(Player player)
     {
         return config.getStringList("playersDisabled").contains(player.getUniqueId().toString());
@@ -92,6 +103,24 @@ public class DisablePvP extends JavaPlugin implements Listener
         GriefPrevention gp = (GriefPrevention)getServer().getPluginManager().getPlugin("GriefPrevention");
         ds = gp.dataStore;
         getServer().getPluginManager().registerEvents(this, this);
+        positiveEffects = new HashSet<>(Arrays.asList
+                (
+                        PotionEffectType.ABSORPTION,
+                        PotionEffectType.DAMAGE_RESISTANCE,
+                        PotionEffectType.FAST_DIGGING,
+                        PotionEffectType.FIRE_RESISTANCE,
+                        PotionEffectType.HEAL,
+                        PotionEffectType.HEALTH_BOOST,
+                        PotionEffectType.INCREASE_DAMAGE,
+                        PotionEffectType.INVISIBILITY,
+                        PotionEffectType.JUMP,
+                        PotionEffectType.NIGHT_VISION,
+                        PotionEffectType.REGENERATION,
+                        PotionEffectType.SATURATION,
+                        PotionEffectType.SPEED,
+                        PotionEffectType.WATER_BREATHING
+                )
+        );
     }
 
     @Override
@@ -214,11 +243,26 @@ public class DisablePvP extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     void onPlayerDamage(EntityDamageByEntityEvent event)
     {
-        if ((event.getEntityType() != EntityType.PLAYER) || event.getDamager().getType() != EntityType.PLAYER)
-            return; //If the attacker nor victim is a player, forgettuhboutit
+        //Check if victim is player and if attacker is a player or victim
+        if (event.getEntityType() != EntityType.PLAYER || (event.getDamager().getType() != EntityType.PLAYER || event.getDamager().getType() != EntityType.ARROW))
+            return;
 
-        Player attacker = (Player)event.getDamager();
+        //Get the attacker
+        Entity damager = event.getDamager();
+        Player attacker = null;
+        switch (damager.getType())
+        {
+            case ARROW:
+                Projectile arrow = (Projectile)damager;
+                if (!(arrow.getShooter() instanceof Player))
+                    return; //Dispenser
+                attacker = (Player)arrow.getShooter();
+                break;
+            case PLAYER:
+                attacker = (Player)damager;
+        }
 
+        //Check if attacker disabled PvP
         if (isPvPDisabledPlayer(attacker))
         {
             event.setCancelled(true);
@@ -226,8 +270,7 @@ public class DisablePvP extends JavaPlugin implements Listener
             return;
         }
 
-        //If we're here, attacker has pvp enabled
-
+        //Attacker has PvP enabled; check if victim disabled PvP
         Player victim = (Player)event.getEntity();
 
         if (isPvPDisabledPlayer(victim))
@@ -235,6 +278,38 @@ public class DisablePvP extends JavaPlugin implements Listener
             event.setCancelled(true);
             attacker.sendMessage(victimDisabled);
             return; //redundant, but in case I want to add to this method in the future...
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    void onPotionSplash(PotionSplashEvent event)
+    {
+        ThrownPotion potion = event.getPotion();
+        //Check if a player threw the potion
+        if (!(potion.getShooter() instanceof Player))
+            return;
+
+        //Check if this potion has harmful effects
+        boolean isHarmful = false;
+        for (PotionEffect effect : potion.getEffects())
+        {
+            if (!positiveEffects.contains(effect))
+            {
+                isHarmful = true;
+                break;
+            }
+        }
+        if (!isHarmful)
+            return;
+
+        //Check if affected entities are players with PvP disabled (except the thrower)
+        for (LivingEntity entity : event.getAffectedEntities())
+        {
+            if (entity instanceof Player)
+            {
+                if (isPvPDisabledPlayer((Player)entity) && entity != potion.getShooter())
+                    event.setIntensity(entity, 0);
+            }
         }
     }
 
