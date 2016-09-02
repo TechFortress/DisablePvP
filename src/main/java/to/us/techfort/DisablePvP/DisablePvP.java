@@ -183,7 +183,7 @@ public class DisablePvP extends JavaPlugin implements Listener
             }
             else
             {
-                player.sendMessage(notAllowed);
+                player.sendMessage(ChatColor.RED + notAllowed);
                 return true;
             }
         }
