@@ -70,7 +70,7 @@ public class DisablePvP extends JavaPlugin implements Listener
         {
             List<String> newList = config.getStringList("claimsEnabled");
             newList.add(claim.getID().toString());
-            config.set("playersDisabled", newList);
+            config.set("claimsEnabled", newList);
         }
         saveConfig();
     }
@@ -79,7 +79,7 @@ public class DisablePvP extends JavaPlugin implements Listener
     {
         List<String> newList = config.getStringList("claimsEnabled");
         newList.remove(claim.getID().toString());
-        config.set("playersDisabled", newList);
+        config.set("claimsEnabled", newList);
         saveConfig();
     }
 
