@@ -43,13 +43,19 @@ public class DisablePvP extends JavaPlugin implements Listener
     void addPvPDisabledPlayer(Player player)
     {
         if (!isPvPDisabledPlayer(player))
-            config.set("playersDisabled", config.getStringList("playersDisabled").add(player.getUniqueId().toString()));
+        {
+            List<String> newList = config.getStringList("playersDisabled");
+            newList.add(player.getUniqueId().toString());
+            config.set("playersDisabled", newList);
+        }
         saveConfig();
     }
 
     void removePvPDisabledPlayer(Player player)
     {
-        config.set("playersDisabled", config.getStringList("playersDisabled").remove(player.getUniqueId().toString()));
+        List<String> newList = config.getStringList("playersDisabled");
+        newList.remove(player.getUniqueId().toString());
+        config.set("playersDisabled", newList);
         saveConfig();
     }
 
@@ -61,13 +67,19 @@ public class DisablePvP extends JavaPlugin implements Listener
     void addPvPEnabledClaim(Claim claim)
     {
         if (!isPvPEnabledClaim(claim))
-            config.set("playersDisabled", config.getStringList("claimsEnabled").add(claim.getID().toString()));
+        {
+            List<String> newList = config.getStringList("claimsEnabled");
+            newList.add(claim.getID().toString());
+            config.set("playersDisabled", newList);
+        }
         saveConfig();
     }
 
     void removePvPEnabledClaim(Claim claim)
     {
-        config.set("playersDisabled", config.getStringList("claimsEnabled").remove(claim.getID().toString()));
+        List<String> newList = config.getStringList("claimsEnabled");
+        newList.remove(claim.getID().toString());
+        config.set("playersDisabled", newList);
         saveConfig();
     }
 
