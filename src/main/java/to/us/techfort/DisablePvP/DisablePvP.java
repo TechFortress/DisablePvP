@@ -103,7 +103,7 @@ public class DisablePvP extends JavaPlugin implements Listener
             {
                 if (args.length < 2)
                 {
-                    sender.sendMessage("/pvp <on|off> <player>");
+                    sender.sendMessage("/pvp <on|off|check> <player>");
                     return true;
                 }
                 Player player = Bukkit.getPlayer(args[1]);
@@ -122,8 +122,16 @@ public class DisablePvP extends JavaPlugin implements Listener
                     disablePvP(player);
                     sender.sendMessage("Disabled PvP for " + player.getName());
                 }
+                else if (args[0].equalsIgnoreCase("check"))
+                {
+                    if (isPvPDisabledPlayer(player))
+                        sender.sendMessage(player.getName() + " disabled PvP");
+                    else
+                        sender.sendMessage(player.getName() + " did not disable PvP");
+                    return true;
+                }
                 else
-                    sender.sendMessage("/pvp <on|off> <player>");
+                    sender.sendMessage("/pvp <on|off|check> <player>");
                 return true;
             }
             return false;
