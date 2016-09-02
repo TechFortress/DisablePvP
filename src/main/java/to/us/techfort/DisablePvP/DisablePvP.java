@@ -270,12 +270,15 @@ public class DisablePvP extends JavaPlugin implements Listener
         if (!isHarmful)
             return;
 
+        //Mark whether the shooter disabled PvP or not
+        boolean shooterDisabledPvP = isPvPDisabledPlayer((Player)potion.getShooter());
+
         //Check if affected entities are players with PvP disabled (except the thrower)
         for (LivingEntity entity : event.getAffectedEntities())
         {
             if (entity instanceof Player)
             {
-                if (isPvPDisabledPlayer((Player)entity) && entity != potion.getShooter())
+                if ((shooterDisabledPvP || isPvPDisabledPlayer((Player)entity)) && entity != potion.getShooter())
                     event.setIntensity(entity, 0);
             }
         }
