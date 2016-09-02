@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,20 +35,46 @@ public class DisablePvP extends JavaPlugin implements Listener
 
     FileConfiguration config = getConfig();
     DataStore ds;
-    List<String> getPvPDisabledPlayers()
+    boolean isPvPDisabledPlayer(Player player)
     {
-        return config.getStringList("playersDisabled");
+        return config.getStringList("playersDisabled").contains(player.getUniqueId().toString());
     }
 
-    List<String> getPvPEnabledClaims()
+    void addPvPDisabledPlayer(Player player)
     {
-        return config.getStringList("claimsEnabled");
+        if (!isPvPDisabledPlayer(player))
+            config.set("playersDisabled", config.getStringList("playersDisabled").add(player.getUniqueId().toString()));
+        saveConfig();
+    }
+
+    void removePvPDisabledPlayer(Player player)
+    {
+        config.set("playersDisabled", config.getStringList("playersDisabled").remove(player.getUniqueId().toString()));
+        saveConfig();
+    }
+
+    boolean isPvPEnabledClaim(Claim claim)
+    {
+        return config.getStringList("claimsEnabled").contains(claim.getID().toString());
+    }
+
+    void addPvPEnabledClaim(Claim claim)
+    {
+        if (!isPvPEnabledClaim(claim))
+            config.set("playersDisabled", config.getStringList("claimsEnabled").add(claim.getID().toString()));
+        saveConfig();
+    }
+
+    void removePvPEnabledClaim(Claim claim)
+    {
+        config.set("playersDisabled", config.getStringList("claimsEnabled").remove(claim.getID().toString()));
+        saveConfig();
     }
 
     public void onEnable()
     {
-        config.addDefault("playersDisabled", null);
-        config.addDefault("claimsEnabled", null);
+        config.addDefault("playersDisabled", new ArrayList<String>());
+        config.addDefault("claimsEnabled", new ArrayList<String>());
         config.options().copyDefaults(true);
         saveConfig();
         GriefPrevention gp = (GriefPrevention)getServer().getPluginManager().getPlugin("GriefPrevention");
@@ -111,7 +138,7 @@ public class DisablePvP extends JavaPlugin implements Listener
             }
 
             //Otherwise, toggle
-            if (getPvPDisabledPlayers().contains(player.getUniqueId().toString()))
+            if (isPvPDisabledPlayer(player))
                 enablePvP(player);
             else
                 disablePvP(player);
@@ -129,21 +156,23 @@ public class DisablePvP extends JavaPlugin implements Listener
             String notAllowed = claim.allowGrantPermission(player);
             if (notAllowed == null) //e.g. allowed to do this
             {
-                String claimID = claim.getID().toString();
-                if (getPvPEnabledClaims().contains(claimID))
+                if (isPvPEnabledClaim(claim))
                 {
-                    getPvPEnabledClaims().remove(claimID);
-                    saveConfig();
+                    removePvPEnabledClaim(claim);
                     player.sendMessage(claimPvPDisabled);
                     return true;
                 }
                 else
                 {
-                    getPvPEnabledClaims().add(claimID);
-                    saveConfig();
+                    addPvPEnabledClaim(claim);
                     player.sendMessage(claimPvPEnabled);
                     return true;
                 }
+            }
+            else
+            {
+                player.sendMessage(notAllowed);
+                return true;
             }
         }
         return false;
@@ -151,16 +180,13 @@ public class DisablePvP extends JavaPlugin implements Listener
 
     void disablePvP(Player player)
     {
-        if (!getPvPDisabledPlayers().contains(player.getUniqueId().toString()))
-            getPvPDisabledPlayers().add(player.getUniqueId().toString());
-        saveConfig();
+        addPvPDisabledPlayer(player);
         player.sendMessage(disabledMessage);
     }
 
     void enablePvP(Player player)
     {
-        getPvPDisabledPlayers().remove(player.getUniqueId().toString());
-        saveConfig();
+        removePvPDisabledPlayer(player);
         player.sendMessage(enabledMessage);
     }
 
@@ -172,7 +198,7 @@ public class DisablePvP extends JavaPlugin implements Listener
 
         Player attacker = (Player)event.getDamager();
 
-        if (getPvPDisabledPlayers().contains(attacker.getUniqueId().toString()))
+        if (isPvPDisabledPlayer(attacker))
         {
             event.setCancelled(true);
             attacker.sendMessage(attackerDisabled);
@@ -183,7 +209,7 @@ public class DisablePvP extends JavaPlugin implements Listener
 
         Player victim = (Player)event.getEntity();
 
-        if (getPvPDisabledPlayers().contains(victim.getUniqueId().toString()))
+        if (isPvPDisabledPlayer(victim))
         {
             event.setCancelled(true);
             attacker.sendMessage(victimDisabled);
@@ -198,7 +224,7 @@ public class DisablePvP extends JavaPlugin implements Listener
         if (claim == null)
             return;
 
-        if (getPvPEnabledClaims().contains(claim.getID().toString()))
+        if (isPvPEnabledClaim(claim))
             event.setCancelled(true);
     }
 }
