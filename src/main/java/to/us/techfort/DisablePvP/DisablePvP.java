@@ -111,7 +111,7 @@ public class DisablePvP extends JavaPlugin implements Listener
             }
 
             //Otherwise, toggle
-            if (!getPvPDisabledPlayers().contains(player.getUniqueId().toString()))
+            if (getPvPDisabledPlayers().contains(player.getUniqueId().toString()))
                 enablePvP(player);
             else
                 disablePvP(player);
