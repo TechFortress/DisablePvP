@@ -244,7 +244,7 @@ public class DisablePvP extends JavaPlugin implements Listener
     void onPlayerDamage(EntityDamageByEntityEvent event)
     {
         //Check if victim is player and if attacker is a player or victim
-        if (event.getEntityType() != EntityType.PLAYER || (event.getDamager().getType() != EntityType.PLAYER || event.getDamager().getType() != EntityType.ARROW))
+        if (event.getEntityType() != EntityType.PLAYER || (event.getDamager().getType() != EntityType.PLAYER && event.getDamager().getType() != EntityType.ARROW))
             return;
 
         //Get the attacker
