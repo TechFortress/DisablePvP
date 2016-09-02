@@ -91,6 +91,7 @@ public class DisablePvP extends JavaPlugin implements Listener
         saveConfig();
         GriefPrevention gp = (GriefPrevention)getServer().getPluginManager().getPlugin("GriefPrevention");
         ds = gp.dataStore;
+        getServer().getPluginManager().registerEvents(this, this);
     }
 
     @Override
