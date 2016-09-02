@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -18,7 +19,9 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -243,42 +246,7 @@ public class DisablePvP extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     void onPlayerDamage(EntityDamageByEntityEvent event)
     {
-        //Check if victim is player and if attacker is a player or victim
-        if (event.getEntityType() != EntityType.PLAYER || (event.getDamager().getType() != EntityType.PLAYER && event.getDamager().getType() != EntityType.ARROW))
-            return;
-
-        //Get the attacker
-        Entity damager = event.getDamager();
-        Player attacker = null;
-        switch (damager.getType())
-        {
-            case ARROW:
-                Projectile arrow = (Projectile)damager;
-                if (!(arrow.getShooter() instanceof Player))
-                    return; //Dispenser
-                attacker = (Player)arrow.getShooter();
-                break;
-            case PLAYER:
-                attacker = (Player)damager;
-        }
-
-        //Check if attacker disabled PvP
-        if (isPvPDisabledPlayer(attacker))
-        {
-            event.setCancelled(true);
-            attacker.sendMessage(attackerDisabled);
-            return;
-        }
-
-        //Attacker has PvP enabled; check if victim disabled PvP
-        Player victim = (Player)event.getEntity();
-
-        if (isPvPDisabledPlayer(victim))
-        {
-            event.setCancelled(true);
-            attacker.sendMessage(victimDisabled);
-            return; //redundant, but in case I want to add to this method in the future...
-        }
+        handleEntityDamageEventCuzThxSpigot(event);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -313,6 +281,14 @@ public class DisablePvP extends JavaPlugin implements Listener
         }
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    void onPlayerIgniteWithArrow(EntityCombustByEntityEvent event)
+    {
+        EntityDamageByEntityEvent eventWrapper = new EntityDamageByEntityEvent(event.getCombuster(), event.getEntity(), EntityDamageEvent.DamageCause.FIRE_TICK, event.getDuration());
+        handleEntityDamageEventCuzThxSpigot(eventWrapper);
+        event.setCancelled(eventWrapper.isCancelled());
+    }
+
     @EventHandler
     void onGPPreventingPvPInAClaim(PreventPvPEvent event)
     {
@@ -322,5 +298,47 @@ public class DisablePvP extends JavaPlugin implements Listener
 
         if (isPvPEnabledClaim(claim))
             event.setCancelled(true);
+    }
+
+    //Credit to BigScary for some of this thanks to the spigot-madness of changing this event >_>
+    void handleEntityDamageEventCuzThxSpigot(EntityDamageByEntityEvent event)
+    {
+        Entity damager = event.getDamager();
+        //Check if victim is player and if attacker is a player or victim
+        if (event.getEntityType() != EntityType.PLAYER || (damager.getType() != EntityType.PLAYER && damager.getType() != EntityType.ARROW && damager.getType() != EntityType.TIPPED_ARROW && damager.getType() != EntityType.SPECTRAL_ARROW))
+            return;
+
+        //Get the attacker
+        Player attacker = null;
+        switch (damager.getType())
+        {
+            case ARROW:
+            case TIPPED_ARROW:
+                Projectile arrow = (Projectile)damager;
+                if (!(arrow.getShooter() instanceof Player))
+                    return; //Dispenser
+                attacker = (Player)arrow.getShooter();
+                break;
+            case PLAYER:
+                attacker = (Player)damager;
+        }
+
+        //Check if attacker disabled PvP
+        if (isPvPDisabledPlayer(attacker))
+        {
+            event.setCancelled(true);
+            attacker.sendMessage(attackerDisabled);
+            return;
+        }
+
+        //Attacker has PvP enabled; check if victim disabled PvP
+        Player victim = (Player)event.getEntity();
+
+        if (isPvPDisabledPlayer(victim))
+        {
+            event.setCancelled(true);
+            attacker.sendMessage(victimDisabled);
+            return; //redundant, but in case I want to add to this method in the future...
+        }
     }
 }
