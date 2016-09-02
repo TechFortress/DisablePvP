@@ -48,6 +48,8 @@ public class DisablePvP extends JavaPlugin implements Listener
     {
         config.addDefault("playersDisabled", null);
         config.addDefault("claimsEnabled", null);
+        config.options().copyDefaults(true);
+        saveConfig();
         GriefPrevention gp = (GriefPrevention)getServer().getPluginManager().getPlugin("GriefPrevention");
         ds = gp.dataStore;
     }
