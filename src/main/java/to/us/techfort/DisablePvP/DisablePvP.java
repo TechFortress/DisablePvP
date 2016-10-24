@@ -317,6 +317,7 @@ public class DisablePvP extends JavaPlugin implements Listener
         {
             case ARROW:
             case TIPPED_ARROW:
+			case SPECTRAL_ARROW:
                 Projectile arrow = (Projectile)damager;
                 if (!(arrow.getShooter() instanceof Player))
                     return; //Dispenser
