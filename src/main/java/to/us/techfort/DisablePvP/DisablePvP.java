@@ -138,7 +138,7 @@ public class DisablePvP extends JavaPlugin implements Listener
                     sender.sendMessage("/pvp <on|off|check> <player>");
                     return true;
                 }
-                Player player = Bukkit.getPlayer(args[1]);
+                Player player = Bukkit.getPlayerExact(args[1]);
                 if (player == null)
                 {
                     sender.sendMessage(args[1] + " ain't a player.");
@@ -287,7 +287,7 @@ public class DisablePvP extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     void onPlayerIgniteWithArrow(EntityCombustByEntityEvent event)
     {
-        EntityDamageByEntityEvent eventWrapper = new EntityDamageByEntityEvent(event.getCombuster(), event.getEntity(), EntityDamageEvent.DamageCause.FIRE_TICK, event.getDuration());
+        EntityDamageByEntityEvent eventWrapper = new EntityDamageByEntityEvent(event.getCombuster(), event.getEntity(), EntityDamageEvent.DamageCause.FIRE_TICK, (double)event.getDuration());
         handleEntityDamageEventCuzThxSpigot(eventWrapper);
         event.setCancelled(eventWrapper.isCancelled());
     }
