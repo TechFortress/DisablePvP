@@ -287,7 +287,7 @@ public class DisablePvP extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     void onPlayerIgniteWithArrow(EntityCombustByEntityEvent event)
     {
-        EntityDamageByEntityEvent eventWrapper = new EntityDamageByEntityEvent(event.getCombuster(), event.getEntity(), EntityDamageEvent.DamageCause.FIRE_TICK, (double)event.getDuration());
+        EntityDamageByEntityEvent eventWrapper = new EntityDamageByEntityEvent(event.getCombuster(), event.getEntity(), EntityDamageEvent.DamageCause.FIRE_TICK, event.getDuration());
         handleEntityDamageEventCuzThxSpigot(eventWrapper);
         event.setCancelled(eventWrapper.isCancelled());
     }
