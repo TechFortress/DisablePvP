@@ -1,9 +1,6 @@
 package to.us.techfort.DisablePvP;
 
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.DataStore;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import me.ryanhamshire.GriefPrevention.events.PreventPvPEvent;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -47,7 +44,6 @@ public class DisablePvP extends JavaPlugin implements Listener
     String claimPvPDisabled = "PvP has been" + ChatColor.RED + " disabled" + ChatColor.RESET + " in this claim.";
 
     FileConfiguration config = getConfig();
-    DataStore ds;
     Set<PotionEffectType> positiveEffects;
     boolean isPvPDisabledPlayer(Player player)
     {
@@ -73,29 +69,6 @@ public class DisablePvP extends JavaPlugin implements Listener
         saveConfig();
     }
 
-    boolean isPvPEnabledClaim(Claim claim)
-    {
-        return config.getStringList("claimsEnabled").contains(claim.getID().toString());
-    }
-
-    void addPvPEnabledClaim(Claim claim)
-    {
-        if (!isPvPEnabledClaim(claim))
-        {
-            List<String> newList = config.getStringList("claimsEnabled");
-            newList.add(claim.getID().toString());
-            config.set("claimsEnabled", newList);
-        }
-        saveConfig();
-    }
-
-    void removePvPEnabledClaim(Claim claim)
-    {
-        List<String> newList = config.getStringList("claimsEnabled");
-        newList.remove(claim.getID().toString());
-        config.set("claimsEnabled", newList);
-        saveConfig();
-    }
 
     public void onEnable()
     {
@@ -103,8 +76,6 @@ public class DisablePvP extends JavaPlugin implements Listener
         config.addDefault("claimsEnabled", new ArrayList<String>());
         config.options().copyDefaults(true);
         saveConfig();
-        GriefPrevention gp = (GriefPrevention)getServer().getPluginManager().getPlugin("GriefPrevention");
-        ds = gp.dataStore;
         getServer().getPluginManager().registerEvents(this, this);
         positiveEffects = new HashSet<>(Arrays.asList
                 (
@@ -198,36 +169,7 @@ public class DisablePvP extends JavaPlugin implements Listener
             return true;
         }
 
-        if (cmd.getName().equalsIgnoreCase("claimpvp"))
-        {
-            Claim claim = ds.getClaimAt(player.getLocation(), true, null);
-            if (claim == null)
-            {
-                player.sendMessage(noClaim);
-                return true;
-            }
-            String notAllowed = claim.allowGrantPermission(player);
-            if (notAllowed == null) //e.g. allowed to do this
-            {
-                if (isPvPEnabledClaim(claim))
-                {
-                    removePvPEnabledClaim(claim);
-                    player.sendMessage(claimPvPDisabled);
-                    return true;
-                }
-                else
-                {
-                    addPvPEnabledClaim(claim);
-                    player.sendMessage(claimPvPEnabled);
-                    return true;
-                }
-            }
-            else
-            {
-                player.sendMessage(ChatColor.RED + notAllowed);
-                return true;
-            }
-        }
+
         return false;
     }
 
@@ -287,21 +229,11 @@ public class DisablePvP extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     void onPlayerIgniteWithArrow(EntityCombustByEntityEvent event)
     {
-        EntityDamageByEntityEvent eventWrapper = new EntityDamageByEntityEvent(event.getCombuster(), event.getEntity(), EntityDamageEvent.DamageCause.FIRE_TICK, (double)event.getDuration());
+        EntityDamageByEntityEvent eventWrapper = new EntityDamageByEntityEvent(event.getCombuster(), event.getEntity(), EntityDamageEvent.DamageCause.FIRE_TICK, event.getDuration());
         handleEntityDamageEventCuzThxSpigot(eventWrapper);
         event.setCancelled(eventWrapper.isCancelled());
     }
 
-    @EventHandler
-    void onGPPreventingPvPInAClaim(PreventPvPEvent event)
-    {
-        Claim claim = event.getClaim();
-        if (claim == null)
-            return;
-
-        if (isPvPEnabledClaim(claim))
-            event.setCancelled(true);
-    }
 
     //Credit to BigScary for some of this thanks to the spigot-madness of changing this event >_>
     void handleEntityDamageEventCuzThxSpigot(EntityDamageByEntityEvent event)
