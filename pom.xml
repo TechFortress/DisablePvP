@@ -6,15 +6,15 @@
 
     <groupId>to.us.techfort</groupId>
     <artifactId>DisablePvP</artifactId>
-    <version>1.2</version>
+    <version>2.0</version>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     <repositories>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>destroystokyo-repo</id>
+            <url>https://repo.destroystokyo.com/repository/maven-public/</url>
         </repository>
         <repository>
             <id>jitpack.io</id>
@@ -35,9 +35,10 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.11-R0.1-SNAPSHOT</version>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.11.2-R0.1-SNAPSHOT</version>
+            <type>jar</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
