@@ -347,7 +347,8 @@ public class DisablePvP extends JavaPlugin implements Listener {
             return; //redundant, but in case I want to add to this method in the future...
         }
     }
-
+    
+/**Used to allow arrows to pass through players on PvP-protected claims*/
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     void onProjectileCollideInClaim(ProjectileCollideEvent event)
     {
