@@ -124,7 +124,7 @@ public class DisablePvP extends JavaPlugin implements Listener {
         if (claim == null)
             return;
 
-        if (isPvPDisabledClaim(claim))
+        if (!isPvPDisabledClaim(claim))
             event.setCancelled(true);
     }
     
