@@ -3,6 +3,6 @@ author: RoboMWM
 version: ${project.version}
 main: to.us.techfort.DisablePvP.DisablePvP
 depend: [GriefPrevention]
+api-version: 1.13
 commands:
     claimpvp: {}
-    pvp: {}
