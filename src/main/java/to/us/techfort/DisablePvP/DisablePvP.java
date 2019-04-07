@@ -101,7 +101,7 @@ public class DisablePvP extends JavaPlugin implements Listener {
             String notAllowed = claim.allowGrantPermission(player);
             if (notAllowed == null) //e.g. allowed to do this
             {
-                if (isPvPEnabledClaim(claim)) {
+                if (!isPvPEnabledClaim(claim)) {
                     removePvPEnabledClaim(claim);
                     player.sendMessage(claimPvPDisabled);
                     return true;
