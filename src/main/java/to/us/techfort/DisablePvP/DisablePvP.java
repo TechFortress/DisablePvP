@@ -37,23 +37,23 @@ public class DisablePvP extends JavaPlugin implements Listener {
     DataStore ds;
     Set<PotionEffectType> positiveEffects;
 
-    boolean isPvPEnabledClaim(Claim claim) {
-        return !config.getStringList("claimsDisabled").contains(claim.getID().toString());
+    boolean isPvPDisabledClaim(Claim claim) {
+        return config.getStringList("claimsDisabled").contains(claim.getID().toString());
     }
 
-    void removePvPEnabledClaim(Claim claim) {
-        if (!isPvPEnabledClaim(claim)) {
+    void addPvPDisabledClaim(Claim claim) {
+        if (!isPvPDisabledClaim(claim)) {
             List<String> newList = config.getStringList("claimsDisabled");
             newList.add(claim.getID().toString());
-            config.set("claimsEnabled", newList);
+            config.set("claimsDisabled", newList);
         }
         saveConfig();
     }
 
-    void addPvPEnabledClaim(Claim claim) {
+    void removePvPDisabledClaim(Claim claim) {
         List<String> newList = config.getStringList("claimsDisabled");
         newList.remove(claim.getID().toString());
-        config.set("claimsEnabled", newList);
+        config.set("claimsDisabled", newList);
         saveConfig();
     }
 
@@ -101,12 +101,12 @@ public class DisablePvP extends JavaPlugin implements Listener {
             String notAllowed = claim.allowGrantPermission(player);
             if (notAllowed == null) //e.g. allowed to do this
             {
-                if (!isPvPEnabledClaim(claim)) {
-                    removePvPEnabledClaim(claim);
+                if (isPvPDisabledClaim(claim)) {
+                    addPvPDisabledClaim(claim);
                     player.sendMessage(claimPvPDisabled);
                     return true;
                 } else {
-                    addPvPEnabledClaim(claim);
+                    removePvPDisabledClaim(claim);
                     player.sendMessage(claimPvPEnabled);
                     return true;
                 }
@@ -124,7 +124,7 @@ public class DisablePvP extends JavaPlugin implements Listener {
         if (claim == null)
             return;
 
-        if (isPvPEnabledClaim(claim))
+        if (isPvPDisabledClaim(claim))
             event.setCancelled(true);
     }
     
