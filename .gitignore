@@ -58,7 +58,7 @@ $RECYCLE.BIN/
 *.lnk
 # ZEINTELLIJ
 .idea
-.iml
+*.iml
 out/
 target/
 *.MF
