@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -23,67 +22,58 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
  * Created by Robo on 9/1/2016.
  */
 public class DisablePvP extends JavaPlugin implements Listener {
-    String disabledMessage = ChatColor.RED + "You turned /pvp off";
-    String enabledMessage = ChatColor.GREEN + "You turned /pvp on";
-    String attackerDisabled = ChatColor.RED + "You disabled /pvp";
-    String victimDisabled = ChatColor.RED + "Your victim has /pvp off";
-    String noClaim = ChatColor.RED + "There's no claim here.";
+    private String DISABLED_MESSAGE = ChatColor.RED + "You turned /pvp off";
+    private String ENABLED_MESSAGE = ChatColor.GREEN + "You turned /pvp on";
+    private String ATTACKER_DISABLED_MESSAGE = ChatColor.RED + "You disabled /pvp";
+    private String VICTIM_DISABLED_MESSAGE = ChatColor.RED + "Your victim has /pvp off";
 
-    FileConfiguration config = getConfig();
-    Set<PotionEffectType> positiveEffects;
+    private Set<PotionEffectType> negativeEffects;
 
-    boolean isPvPDisabledPlayer(Player player) {
-        return config.getStringList("playersDisabled").contains(player.getUniqueId().toString());
+    private boolean hasPvP(Player player)
+    {
+        return !getConfig().contains(player.getUniqueId().toString());
     }
 
-    void addPvPDisabledPlayer(Player player) {
-        if (!isPvPDisabledPlayer(player)) {
-            List<String> newList = config.getStringList("playersDisabled");
-            newList.add(player.getUniqueId().toString());
-            config.set("playersDisabled", newList);
-        }
+    private void disablePvP(Player player, boolean sendMessage)
+    {
+        getConfig().set(player.getUniqueId().toString(), null);
         saveConfig();
+        if (sendMessage)
+            player.sendMessage(DISABLED_MESSAGE);
     }
 
-    void removePvPDisabledPlayer(Player player) {
-        List<String> newList = config.getStringList("playersDisabled");
-        newList.remove(player.getUniqueId().toString());
-        config.set("playersDisabled", newList);
+    private void enablePvP(Player player, boolean sendMessage)
+    {
+        getConfig().set(player.getUniqueId().toString(), true);
         saveConfig();
+        if (sendMessage)
+            player.sendMessage(ENABLED_MESSAGE);
     }
 
-    public void onEnable() {
-        config.addDefault("playersDisabled", new ArrayList<String>());
-        config.addDefault("claimsEnabled", new ArrayList<String>());
-        config.options().copyDefaults(true);
-        saveConfig();
+    public void onEnable()
+    {
         getServer().getPluginManager().registerEvents(this, this);
-        positiveEffects = new HashSet<>(Arrays.asList
+        negativeEffects = new HashSet<>(Arrays.asList
                 (
-                        PotionEffectType.ABSORPTION,
-                        PotionEffectType.DAMAGE_RESISTANCE,
-                        PotionEffectType.FAST_DIGGING,
-                        PotionEffectType.FIRE_RESISTANCE,
-                        PotionEffectType.HEAL,
-                        PotionEffectType.HEALTH_BOOST,
-                        PotionEffectType.INCREASE_DAMAGE,
-                        PotionEffectType.INVISIBILITY,
-                        PotionEffectType.JUMP,
-                        PotionEffectType.NIGHT_VISION,
-                        PotionEffectType.REGENERATION,
-                        PotionEffectType.SATURATION,
-                        PotionEffectType.SPEED,
-                        PotionEffectType.WATER_BREATHING
+                        PotionEffectType.SLOW,
+                        PotionEffectType.SLOW_DIGGING,
+                        PotionEffectType.HARM,
+                        PotionEffectType.CONFUSION,
+                        PotionEffectType.BLINDNESS,
+                        PotionEffectType.HUNGER,
+                        PotionEffectType.WEAKNESS,
+                        PotionEffectType.POISON,
+                        PotionEffectType.LEVITATION,
+                        PotionEffectType.UNLUCK,
+                        PotionEffectType.BAD_OMEN
                 )
         );
     }
@@ -102,16 +92,16 @@ public class DisablePvP extends JavaPlugin implements Listener {
                     return true;
                 }
                 if (args[0].equalsIgnoreCase("on")) {
-                    enablePvP(player);
+                    enablePvP(player, false);
                     sender.sendMessage("Enabled PvP for " + player.getName());
                 } else if (args[0].equalsIgnoreCase("off")) {
-                    disablePvP(player);
+                    disablePvP(player, false);
                     sender.sendMessage("Disabled PvP for " + player.getName());
                 } else if (args[0].equalsIgnoreCase("check")) {
-                    if (isPvPDisabledPlayer(player))
-                        sender.sendMessage(player.getName() + " disabled PvP");
+                    if (hasPvP(player))
+                        sender.sendMessage(player.getName() + " has PvP enabled");
                     else
-                        sender.sendMessage(player.getName() + " did not disable PvP");
+                        sender.sendMessage(player.getName() + " has PvP disabled");
                     return true;
                 } else
                     sender.sendMessage("/pvp <on|off|check> <player>");
@@ -129,43 +119,33 @@ public class DisablePvP extends JavaPlugin implements Listener {
                     case "disable":
                     case "off":
                     case "false":
-                        disablePvP(player);
+                        disablePvP(player, true);
                         return true;
                     case "enable":
                     case "on":
                     case "true":
-                        enablePvP(player);
+                        enablePvP(player, true);
                         return true;
                 }
             }
 
             //Otherwise, toggle
-            if (isPvPDisabledPlayer(player))
-                enablePvP(player);
+            if (hasPvP(player))
+                disablePvP(player, true);
             else
-                disablePvP(player);
+                enablePvP(player, true);
             return true;
         }
         return false;
     }
 
-    void disablePvP(Player player) {
-        addPvPDisabledPlayer(player);
-        player.sendMessage(disabledMessage);
-    }
-
-    void enablePvP(Player player) {
-        removePvPDisabledPlayer(player);
-        player.sendMessage(enabledMessage);
-    }
-
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    void onPlayerDamage(EntityDamageByEntityEvent event) {
+    public void onPlayerDamage(EntityDamageByEntityEvent event) {
         handleEntityDamageEventCuzThxSpigot(event);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    void onPotionSplash(PotionSplashEvent event) {
+    public void onPotionSplash(PotionSplashEvent event) {
         ThrownPotion potion = event.getPotion();
         //Check if a player threw the potion
         if (!(potion.getShooter() instanceof Player))
@@ -173,8 +153,10 @@ public class DisablePvP extends JavaPlugin implements Listener {
 
         //Check if this potion has harmful effects
         boolean isHarmful = false;
-        for (PotionEffect effect : potion.getEffects()) {
-            if (!positiveEffects.contains(effect)) {
+        for (PotionEffect effect : potion.getEffects())
+        {
+            if (negativeEffects.contains(effect.getType()))
+            {
                 isHarmful = true;
                 break;
             }
@@ -182,14 +164,17 @@ public class DisablePvP extends JavaPlugin implements Listener {
         if (!isHarmful)
             return;
 
-        //Mark whether the shooter disabled PvP or not
-        boolean shooterDisabledPvP = isPvPDisabledPlayer((Player) potion.getShooter());
+        Player shooter = (Player)potion.getShooter();
 
         //Check if affected entities are players with PvP disabled (except the thrower)
-        for (LivingEntity entity : event.getAffectedEntities()) {
-            if (entity instanceof Player) {
-                if ((shooterDisabledPvP || isPvPDisabledPlayer((Player) entity)) && entity != potion.getShooter())
-                    event.setIntensity(entity, 0);
+        for (LivingEntity victim : event.getAffectedEntities())
+        {
+            if (victim == shooter)
+                continue;
+            if (victim instanceof Player)
+            {
+                if (isPvPAllowed(shooter, (Player)victim))
+                    event.setIntensity(victim, 0);
             }
         }
     }
@@ -205,44 +190,19 @@ public class DisablePvP extends JavaPlugin implements Listener {
     //Credit to BigScary for some of this thanks to the spigot-madness of changing this event >_>
     void handleEntityDamageEventCuzThxSpigot(EntityDamageByEntityEvent event)
     {
-        Entity damager = event.getDamager();
-
-        //Check if victim is player
         if (event.getEntityType() != EntityType.PLAYER)
             return;
 
-        //Get the attacker
-
-
-        //Check if attacker is a player
+        Player attacker = getAttacker(event.getDamager());
         if (attacker == null)
             return;
 
-        //Check if attacker disabled PvP
-        if (isPvPDisabledPlayer(attacker))
-        {
-            event.setCancelled(true);
-            attacker.sendActionBar(attackerDisabled);
-            return;
-        }
-
-        //Attacker has PvP enabled; check if victim disabled PvP
-        Player victim = (Player) event.getEntity();
-
-        if (isPvPDisabledPlayer(victim))
-        {
-            event.setCancelled(true);
-            attacker.sendActionBar(victimDisabled);
-            return; //redundant, but in case I want to add to this method in the future...
-        }
+        event.setCancelled(!isPvPAllowed((Player)event.getEntity(), attacker));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     void onProjectileCollide(ProjectileCollideEvent event)
     {
-        //Is this copy-pasted code? Is this bad practice?
-        //You sure betcha it is!!!!!1111!!
-
         //Check if victim is a player
         if (event.getCollidedWith().getType() != EntityType.PLAYER)
             return;
@@ -251,38 +211,28 @@ public class DisablePvP extends JavaPlugin implements Listener {
         if (!(event.getEntity().getShooter() instanceof Player))
             return;
 
-        Entity damager = event.getEntity();
-
-        //Get the attacker
-        Player attacker;
-        switch (damager.getType())
-        {
-            case ARROW:
-            case SPECTRAL_ARROW:
-                attacker = (Player)event.getEntity().getShooter();
-                break;
-            default: //Please
-                return;
-        }
-
-        //Check if attacker disabled PvP
-        if (isPvPDisabledPlayer(attacker)) {
-            event.setCancelled(true);
+        Player attacker = getAttacker(event.getEntity());
+        if (attacker == null)
             return;
-        }
 
-        //Attacker has PvP enabled; check if victim disabled PvP
-        Player victim = (Player) event.getEntity();
-
-        if (isPvPDisabledPlayer(victim)) {
-            event.setCancelled(true);
-            return; //redundant, but in case I want to add to this method in the future...
-        }
+        event.setCancelled(!isPvPAllowed((Player)event.getCollidedWith(), attacker));
     }
 
     private boolean isPvPAllowed(Player victim, Player attacker)
     {
+        if (!hasPvP(attacker))
+        {
+            attacker.sendActionBar(ATTACKER_DISABLED_MESSAGE);
+            return false;
+        }
 
+        if (!hasPvP(victim))
+        {
+            attacker.sendActionBar(VICTIM_DISABLED_MESSAGE);
+            return false;
+        }
+
+        return true;
     }
 
     private Player getAttacker(Entity damager)
