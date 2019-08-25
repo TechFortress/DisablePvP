@@ -2,7 +2,5 @@ name: DisablePvP
 author: RoboMWM
 version: ${project.version}
 main: to.us.techfort.DisablePvP.DisablePvP
-depend: [GriefPrevention]
 commands:
-    claimpvp: {}
     pvp: {}
