@@ -39,7 +39,7 @@ public class DisablePvP extends JavaPlugin implements Listener {
 
     private boolean hasPvP(Player player)
     {
-        return !getConfig().contains(player.getUniqueId().toString());
+        return getConfig().contains(player.getUniqueId().toString());
     }
 
     private void disablePvP(Player player, boolean sendMessage)
