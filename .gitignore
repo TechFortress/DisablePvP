@@ -4,6 +4,7 @@
 .mtj.tmp/
 
 # Package Files #
+*.jar
 *.war
 *.ear
 
@@ -57,6 +58,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 # ZEINTELLIJ
+.idea
+*.iml
 workspace.xml
 tasks.xml
 .idea/libraries
