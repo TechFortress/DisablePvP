@@ -6,7 +6,7 @@ If you decide to turn PvP off for yourself, you will be unable to receive nor gi
 ### Commands
 Note: square brackets `[]` indicate __optional__ arguments. The pipe `|` indicates different options for that argument.
 - `/pvp [on|off]` - Toggles PvP for yourself. Default on (PvP is allowed)
-~~- `claimpvp` - Toggles PvP in the GriefPrevention claim you are standing in. By default, GriefPrevention disables PvP in claims - this toggles that protection.~~ I've removed this feature in 3.0 and thus its dependence on GriefPrevention.
+- ~~`claimpvp` - Toggles PvP in the GriefPrevention claim you are standing in. By default, GriefPrevention disables PvP in claims - this toggles that protection.~~ I've removed this feature in 3.0 and thus its dependence on GriefPrevention.
 
 Both toggles are persistent and are saved in the DisablePvP folder.
 
